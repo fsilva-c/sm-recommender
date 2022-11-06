@@ -4,9 +4,11 @@ from make_dataset import INPUT_PATH
 
 class Video(Spark):
     
+    def __init__(self) -> None:
+        self.__df_videos = super().spark.read.csv(INPUT_PATH + 'videos.csv', header=True)
+
     def get_by_id(self, id):
-        df_videos = super().spark.read.csv(INPUT_PATH + 'videos.csv', header=True)
-        video = df_videos.filter(f'video_id = {id}').select(['video_id', 'name', 'duration']).collect()[0]
+        video = self.__df_videos.filter(f'video_id = {id}').select(['video_id', 'name', 'duration']).collect()[0]
         self.__id = video.video_id
         self.__name = video.name
         self.__duration = int(video.duration)
