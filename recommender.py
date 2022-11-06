@@ -34,7 +34,7 @@ class Recommender(Spark):
         model = self.train()
         user = self.__users.filter(f'user_id = {user_id}')
         recommendations = model.recommendForUserSubset(user, numItems=n_items)
-        
+
         return list(
                 recommendations \
                 .withColumn('rec_exp', explode('recommendations')) \

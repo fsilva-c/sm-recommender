@@ -13,7 +13,7 @@ HEADER_USER       = 'user_id,name\n'
 
 N_USERS        = 100
 N_VIDEOS       = 100
-MAX_ITERATIONS = 5
+MAX_ITERATIONS = 20
 MAX_REPS       = 5
 VIDEO_DURATION = (15, 30) # segundos...
 
@@ -71,5 +71,6 @@ def run():
                     f_iterations.write(f'{user_id},{video_id},{like},{shared},{reps},{saved},{commented}' + '\n')
                     f_ratings.write(f'{user_id},{video_id},{like*W_LIKE + shared*W_SHARED + reps*W_REPS + saved*W_SAVED + commented*W_COMMENTED}' + '\n')
 
+# run()
 if __name__ == 'main':
     run()

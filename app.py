@@ -1,4 +1,5 @@
-import tkinter as tk
+import tkinter as tk, time
+from threading import Thread
 from random import randint
 from faker import Faker
 from make_dataset import N_VIDEOS
@@ -16,11 +17,12 @@ class App(tk.Frame):
         self.user      = User(name=faker.name())
         self.rating    = Rating(self.user)
         self.__recommender = Recommender()
-        self.__videos  = [Video().get_from_id(randint(0, N_VIDEOS))]
-        self.__n_items = 0
+        self.__n_items = 5
+        self.__videos  = self.random_videos()
+        self.__video   = self.__videos.pop(0)
 
         # icons...
-        self.icon_prev    = tk.PhotoImage(file='img/icons8-back-to-50.png')
+        self.icon_prev    = tk.PhotoImage(file='img/icons8-replace-50.png')
         self.icon_like    = tk.PhotoImage(file='img/icons8-facebook-like-50.png')
         self.icon_next    = tk.PhotoImage(file='img/icons8-next-page-50.png')
         self.icon_comment = tk.PhotoImage(file='img/icons8-comments-50.png')
@@ -28,7 +30,7 @@ class App(tk.Frame):
         self.icon_saved   = tk.PhotoImage(file='img/icons8-save-50.png')
 
         # video label...
-        self.label_video = tk.Label(width=15, text=self.__videos[0].name, font=('Arial bold', 20), pady=20)
+        self.label_video = tk.Label(width=15, text=self.__video.name, font=('Arial bold', 20), pady=20)
         self.label_video.grid(row=0, column=2)
 
         # prev button...
@@ -54,25 +56,32 @@ class App(tk.Frame):
         self.button_saved = tk.Button(image=self.icon_saved, command=self.__onclick_saved,)
         self.button_saved.grid(row=2, column=3)
 
-        self.update_label_video()
+        self.thread = Thread()
 
-    def update_label_video(self, click=False):
-        if not self.__videos:
+    def recommender(self):
+        self.__videos.extend([Video().get_by_id(id) for id in self.__recommender.recommender(self.user.id, self.__n_items)])
+    
+    def random_videos(self):
+        return [Video().get_by_id(id) for id in [randint(0, N_VIDEOS) for _ in range(self.__n_items)]]
+
+    def save_iteration(self):
+        self.rating.save(self.__video, self.iteration)
+        self.iteration.reset()
+
+    def update_video(self):
+        self.__manager_buttons('active')
+
+        if len(self.__videos) < 5 and not self.thread.is_alive():
             print('Atualizando o feed...')
-            self.__n_items += 5
-            self.__videos = [Video().get_from_id(id) for id in self.__recommender.recommender(self.user.id, self.__n_items)]
+            self.thread = Thread(target=self.recommender)
+            self.thread.start()
+            self.__n_items += 5 if self.__n_items < 15 else 0
 
-        video = self.__videos.pop(0)
+        if not self.__videos: # evita que a lista de videos fique vazia...
+            self.__videos = self.random_videos()
 
-        self.label_video.config(text=video.name)
-        
-        if not click:
-            self.after(video.duration * 1000, self.update_label_video)
-        
-        self.__active_buttons()
-        self.rating.save(video, self.iteration)
-        self.iteration = Iteration() # reseta as iterações...
-
+        self.__video = self.__videos.pop(0)
+        self.label_video.config(text=self.__video.name)
 
     # onclicks...
     def __onclick_prev(self):
@@ -84,7 +93,8 @@ class App(tk.Frame):
         self.__disable_button(self.button_like)
 
     def __onclick_next(self):
-        self.update_label_video(click=True)
+        self.save_iteration()
+        self.update_video()
 
     def __onclick_comment(self):
         self.iteration.iter_commented()
@@ -101,9 +111,9 @@ class App(tk.Frame):
     def __disable_button(self, button):
         button['state'] = 'disabled'
 
-    def __active_buttons(self):
-        self.button_like['state']    = 'active'
-        self.button_comment['state'] = 'active'
-        self.button_shared['state']  = 'active'
-        self.button_saved['state']   = 'active'
-        self.button_prev['state']    = 'active'
+    def __manager_buttons(self, mode):
+        self.button_like['state']    = mode
+        self.button_comment['state'] = mode
+        self.button_shared['state']  = mode
+        self.button_saved['state']   = mode
+        self.button_prev['state']    = mode

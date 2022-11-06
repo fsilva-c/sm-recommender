@@ -11,6 +11,9 @@ class Iteration:
         self.__commented = 0
 
 
+    def reset(self):
+        self.__init__()
+
     def iter_like(self):
         self.__like = 1
 
