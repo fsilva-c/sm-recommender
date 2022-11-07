@@ -7,13 +7,20 @@ from recommender import Recommender
 n_items = 10
 r = Recommender()
 
+def get_recommendations(user_id):
+    return [(Video().get_by_id(video_id).name, rating) for video_id, rating in r.recommender(user_id, n_items, col_rating=True)]
+
 df = pd.DataFrame(
     {
-        'User 50': [Video().get_by_id(id).name for id in r.recommender(50, n_items)],
-        'User 51': [Video().get_by_id(id).name for id in r.recommender(51, n_items)],
-        'User 52': [Video().get_by_id(id).name for id in r.recommender(52, n_items)],
-        'User 93': [Video().get_by_id(id).name for id in r.recommender(93, n_items)]
+        'User 50': get_recommendations(user_id=50),
+        'User 51': get_recommendations(user_id=51),
+        'User 52': get_recommendations(user_id=52),
+        'User 93': get_recommendations(user_id=93)
     }
 )
 
+print()
+print('Recomendações geradas para os usuários 50, 51, 52 e 93')
+print()
 print(df)
+print()

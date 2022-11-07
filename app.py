@@ -70,6 +70,13 @@ class App(tk.Frame):
 
     def update_video(self):
         self.__manager_buttons('active')
+        
+        # print videos...
+        print('Vídeos na lista...')
+        print('(')
+        for video in self.__videos:
+            print(video.name)
+        print(')', '\n')
 
         if len(self.__videos) < 5 and not self.thread.is_alive():
             print('Atualizando o feed...')
